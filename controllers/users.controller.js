@@ -1,30 +1,26 @@
 'use strict';
 
 const db = require('../db');
-const { qrCodeKey, qrCodeImg } = require('../lib/qrcode');
+const { createOTP, verifyOTP } = require('../lib/otplib');
+const { createQRCode } = require('../lib/qrcode');
 const { sendMail } = require('../lib/mailer');
-const { authenticator } = require('otplib');
 const { createUser, createUserOTP, loginUser, getUserOTP } = require('../services/users.service');
-
-const verifyOTP = (token, secret) => {
-    return authenticator.verify({ token, secret });
-};
 
 module.exports = {
     async createUser(req, res, next) {
         try {
             const { id, password, name } = req.body;
 
-            const { secretKey, otpURI } = await qrCodeKey(id);
-            const pngFile = await qrCodeImg(id, otpURI);
+            const { secretKey, otpURI } = await createOTP(id);
+            const pngFile = await createQRCode(id, otpURI);
 
             try {
                 await db.query('BEGIN')
                 await createUser(id, password, name);
                 await createUserOTP(id, secretKey);
+                await sendMail(id, pngFile);
                 await db.query('COMMIT');
 
-                await sendMail(id, pngFile);
                 res.sendStatus(201);
             } catch (error) {
                 await db.query('ROLLBACK');
@@ -38,18 +34,14 @@ module.exports = {
         try {
             const { id, password, otp } = req.body;
 
-            const users = await loginUser(id, password);
-            if (!users) res.sendStatus(401);
+            const user = await loginUser(id, password);
+            if (!user) throw new Error(401, 'Not Found User');
 
             const userOTP = await getUserOTP(id);
-            if (!userOTP) {
-                res.sendStatus(401);
-                return;
-            }
-            if (!verifyOTP(otp, userOTP.secretKey)) {
-                res.sendStatus(403);
-                return;
-            }
+            if (!userOTP) throw new Error(401, 'Not Found User OTP');
+
+            const otpVerify = await verifyOTP(otp, userOTP.secretKey);
+            if (!otpVerify) throw new Error(403, 'OTP Verification failure');
 
             res.sendStatus(200);
         } catch (error) {

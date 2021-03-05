@@ -1,9 +1,15 @@
 'use strict';
 
 const createError = require('http-errors');
+const config = require('config');
 const express = require('express');
 const logger = require('morgan');
 const app = express();
+
+console.log('====================');
+console.log('=== server start ===');
+console.log(`=== ${config.get('env')} ===`);
+console.log('====================');
 
 app.use(logger('dev'));
 app.use(express.json());

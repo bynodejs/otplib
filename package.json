@@ -2,9 +2,13 @@
   "name": "optlib-example",
   "version": "0.0.0",
   "private": true,
+  "description": "otplib-example",
+  "author": "AGUMON",
+  "license": "ISC",
+  "main": "bin/www",
   "scripts": {
-    "start": "node ./bin/www",
-    "dev": "nodemon ./bin/www"
+    "start": "NODE_ENV=production node bin/www",
+    "dev": "NODE_ENV=development nodemon"
   },
   "dependencies": {
     "base64-img": "^1.0.4",
@@ -19,11 +23,6 @@
     "pg": "^8.5.1",
     "qrcode": "^1.4.4"
   },
-  "description": "",
-  "main": "app.js",
-  "directories": {
-    "lib": "lib"
-  },
   "devDependencies": {
     "nodemon": "^2.0.7"
   },
@@ -31,9 +30,6 @@
     "type": "git",
     "url": "git+https://github.com/bynodejs/otplib.git"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "bugs": {
     "url": "https://github.com/bynodejs/otplib/issues"
   },
